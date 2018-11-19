@@ -1,17 +1,5 @@
 "use strict"
 
-class Personnage{
-    constructor(url){
-        this.url = url
-
-        return this.draw()
-    }
-
-    draw(){
-        console.log("draw pers", this.url)
-    }
-}
-
 class App {
     constructor() {
         // Renderer
@@ -32,7 +20,7 @@ class App {
         )
 
         // Controls
-        this.controls = new THREE.OrbitControls(this.camera)
+        this.orbitControl = new THREE.OrbitControls(this.camera)
 
         // Scene settings
         this.fbxLoader = new THREE.FBXLoader()
@@ -40,6 +28,14 @@ class App {
         this.models = []
         this.mixers = []
         this.animations = []
+        
+        // Meshes settings
+        this.controls = {
+            moveForward: false,
+            moveBackward: false,
+            moveLeft: false,
+            moveRight: false
+        }
 
         // Launch scene
         this.init()
@@ -50,7 +46,6 @@ class App {
         this.renderer.setPixelRatio(window.devicePixelRatio)
         this.renderer.setSize(window.innerWidth, window.innerHeight)
         this.camera.position.set(0, 0, 1000)
-        this.controls.update()
         this.scene.background = new THREE.Color(0x0000ff)
 
         // Lights
@@ -63,10 +58,11 @@ class App {
 
         // Load all Meshes
         Promise.all([
-            this.loadModel("assets/remy.fbx", "personnage"),
-            this.loadAnimation("assets/yelling_animation.fbx", "yellingAnimation"),
+            this.loadModel("assets/remy.fbx", "remy"),
+            this.loadAnimation("assets/standing_animation.fbx", "standingAnimation"),
+            this.loadAnimation("assets/walking_animation.fbx", "walkingAnimation"),
             this.loadAnimation("assets/dancing_animation.fbx", "dancingAnimation"),
-            this.loadAnimation("assets/walking_animation.fbx", "walkingAnimation")
+            this.loadAnimation("assets/yelling_animation.fbx", "yellingAnimation"),
         ]).then(() => {
             // Once all loaded, launch the scene
             this.launchScene()
@@ -76,7 +72,6 @@ class App {
     loadModel(path, id) {
         return new Promise((resolve, reject) => {
             this.fbxLoader.load(path, (model) => {
-                console.log("load", model)
                 model.mixer = new THREE.AnimationMixer(model)
                 this.models[id] = model
                 this.mixers.push(model.mixer)
@@ -96,22 +91,56 @@ class App {
 
     launchScene(){
         // Add all meshes to scene
-        for (let key in this.models) {
-            let model = this.models[key]
+        for(let id in this.models){
+            let model = this.models[id]
 
-            if(key === "personnage"){
-                let action = model.mixer.clipAction(this.animations["dancingAnimation"])
-                action.play()
+            if(id === "remy"){
+                // for(let key in this.animations){
+                //     let animation = this.animations[key]
+                //     model.mixer.clipAction(animation)
+                // }
+                this.remy = model
             }
 
             this.scene.add(model)
         }
 
+        // Add listeners
+        window.addEventListener('keydown', this.onKeyDown.bind(this), false)
+        window.addEventListener('keyup', this.onKeyUp.bind(this), false)
+
         // Update raf
         this.update()
     }
 
+    onKeyDown(e){
+        e.stopPropagation()
+
+        switch ( event.keyCode ) {
+            case 38: /*UP*/
+            case 90: /*Z*/ 	this.controls.moveForward = true; break;
+        }
+    }
+
+    onKeyUp(e){
+        e.stopPropagation()
+
+        switch ( event.keyCode ) {
+            case 38: /*UP*/
+            case 90: /*Z*/ 	this.controls.moveForward = false; break;
+        }
+    }
+
     update() {
+        if(this.controls.moveForward){
+            this.remy.mixer.clipAction(this.animations["walkingAnimation"]).play()
+            this.remy.mixer.clipAction(this.animations["standingAnimation"]).stop()
+        } else {
+            this.remy.mixer.clipAction(this.animations["standingAnimation"]).play()
+            this.remy.mixer.clipAction(this.animations["walkingAnimation"]).stop()
+        }
+
+        // Update all mixers animations
         for ( var i = 0; i < this.mixers.length; i ++ ) {
             this.mixers[ i ].update( this.clock.getDelta() )
         }
