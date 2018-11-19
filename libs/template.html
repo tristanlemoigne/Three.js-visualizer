@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="og:title" content="#codevember 00">
+    <meta property="og:image" content="https://tristanlemoigne.github.io/Codevember-2018/00/assets/thumbnail.jpg">
+    <meta name="twitter:title" content="#codevember 00">
+    <meta name="twitter:image" content="https://tristanlemoigne.github.io/Codevember-2018/00/assets/thumbnail.jpg">
+
+    <title>00 - Template</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: sans-serif;
+            font-size: 14px;
+        }
+
+        p {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            margin: 0;
+            color: #fff;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        a:hover {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+    <p>By <a href="https://www.tristanlemoigne.com" target="_blank">Tristan Le Moigne</a></p>
+    <canvas></canvas>
+
+    <script src="../libs/three.js"></script>
+    <script src="../libs/orbitControl.js"></script>
+
+    <script src="./app.js"></script>
+</body>
+
+</html>
