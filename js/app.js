@@ -1,16 +1,28 @@
 "use strict"
 
-class Mesh {
-    constructor() {
-        this.size = 1
-        this.color = 0xffffff
+// class Mesh {
+//     constructor() {
+//         this.size = 1
+//         this.color = 0xffffff
+//     }
+
+//     draw() {
+//         let geometry = new THREE.BoxGeometry(this.size, this.size, this.size)
+//         let material = new THREE.MeshLambertMaterial({ color: this.color })
+
+//         return new THREE.Mesh(geometry, material)
+//     }
+// }
+
+class Personnage{
+    constructor(url){
+        this.url = url
+
+        return this.draw()
     }
 
-    draw() {
-        let geometry = new THREE.BoxGeometry(this.size, this.size, this.size)
-        let material = new THREE.MeshLambertMaterial({ color: this.color })
-
-        return new THREE.Mesh(geometry, material)
+    draw(){
+        console.log("draw pers", this.url)
     }
 }
 
@@ -36,6 +48,9 @@ class App {
         // Controls
         this.controls = new THREE.OrbitControls(this.camera)
 
+        // Mesh settings
+        this.PERSONNAGE_URL = "assets/walking3.fbx"
+
         // Launch scene
         this.init()
     }
@@ -46,6 +61,7 @@ class App {
         this.renderer.setSize(window.innerWidth, window.innerHeight)
         this.camera.position.set(0, 0, 10)
         this.controls.update()
+        this.scene.background = new THREE.Color(0xfff000)
 
         // Lights
         let pointLight = new THREE.PointLight(0xffffff, 1, 200)
@@ -56,8 +72,12 @@ class App {
         this.scene.add(ambientLight)
 
         // Mesh
-        this.mesh = new Mesh().draw()
-        this.scene.add(this.mesh)
+        new THREE.FBXLoader().load( this.PERSONNAGE_URL, mesh => {
+            console.log(mesh)
+            this.scene.add(mesh)
+        })
+
+        // this.scene.add(this.mesh)
 
         // Animations
         this.update()
