@@ -1,19 +1,5 @@
 "use strict"
 
-// class Mesh {
-//     constructor() {
-//         this.size = 1
-//         this.color = 0xffffff
-//     }
-
-//     draw() {
-//         let geometry = new THREE.BoxGeometry(this.size, this.size, this.size)
-//         let material = new THREE.MeshLambertMaterial({ color: this.color })
-
-//         return new THREE.Mesh(geometry, material)
-//     }
-// }
-
 class Personnage{
     constructor(url){
         this.url = url
@@ -39,17 +25,21 @@ class App {
 
         // Camera
         this.camera = new THREE.PerspectiveCamera(
-            45,
+            75,
             window.innerWidth / window.innerHeight,
             0.1,
-            1000
+            1500
         )
 
         // Controls
         this.controls = new THREE.OrbitControls(this.camera)
 
-        // Mesh settings
-        this.PERSONNAGE_URL = "assets/walking3.fbx"
+        // Scene settings
+        this.fbxLoader = new THREE.FBXLoader()
+        this.clock = new THREE.Clock()
+        this.models = []
+        this.mixers = []
+        this.animations = []
 
         // Launch scene
         this.init()
@@ -59,9 +49,9 @@ class App {
         // Settings
         this.renderer.setPixelRatio(window.devicePixelRatio)
         this.renderer.setSize(window.innerWidth, window.innerHeight)
-        this.camera.position.set(0, 0, 10)
+        this.camera.position.set(0, 0, 1000)
         this.controls.update()
-        this.scene.background = new THREE.Color(0xfff000)
+        this.scene.background = new THREE.Color(0x0000ff)
 
         // Lights
         let pointLight = new THREE.PointLight(0xffffff, 1, 200)
@@ -71,19 +61,61 @@ class App {
         let ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
         this.scene.add(ambientLight)
 
-        // Mesh
-        new THREE.FBXLoader().load( this.PERSONNAGE_URL, mesh => {
-            console.log(mesh)
-            this.scene.add(mesh)
+        // Load all Meshes
+        Promise.all([
+            this.loadModel("assets/remy.fbx", "personnage"),
+            this.loadAnimation("assets/yelling_animation.fbx", "yellingAnimation"),
+            this.loadAnimation("assets/dancing_animation.fbx", "dancingAnimation"),
+            this.loadAnimation("assets/walking_animation.fbx", "walkingAnimation")
+        ]).then(() => {
+            // Once all loaded, launch the scene
+            this.launchScene()
         })
+    }
 
-        // this.scene.add(this.mesh)
+    loadModel(path, id) {
+        return new Promise((resolve, reject) => {
+            this.fbxLoader.load(path, (model) => {
+                console.log("load", model)
+                model.mixer = new THREE.AnimationMixer(model)
+                this.models[id] = model
+                this.mixers.push(model.mixer)
+                resolve()
+            })
+        })
+    }
 
-        // Animations
+    loadAnimation(path, id) {
+        return new Promise((resolve, reject) => {
+            this.fbxLoader.load(path, (mesh) => {
+                this.animations[id] = mesh.animations[0]
+                resolve()
+            })
+        })
+    }
+
+    launchScene(){
+        // Add all meshes to scene
+        for (let key in this.models) {
+            let model = this.models[key]
+
+            if(key === "personnage"){
+                let action = model.mixer.clipAction(this.animations["dancingAnimation"])
+                action.play()
+            }
+
+            this.scene.add(model)
+        }
+
+        // Update raf
         this.update()
     }
 
     update() {
+        for ( var i = 0; i < this.mixers.length; i ++ ) {
+            this.mixers[ i ].update( this.clock.getDelta() )
+        }
+
         this.renderer.render(this.scene, this.camera)
         requestAnimationFrame(this.update.bind(this))
     }
