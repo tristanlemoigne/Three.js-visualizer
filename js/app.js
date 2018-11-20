@@ -41,8 +41,9 @@ class App {
             moveBackward: false,
             moveLeft: false,
             moveRight: false,
-            default: true
         }
+
+        this.REMY_SPEED = 0.5
 
         // Launch scene
         this.init()
@@ -164,18 +165,27 @@ class App {
     }
 
     update() {
+        // Playing correct animations
+        if(this.controls.moveForward || this.controls.moveBackward || this.controls.moveLeft ||this.controls.moveRight){
+            this.remy.mixer.clipAction(this.animations["standingAnimation"]).stop()
+            this.remy.mixer.clipAction(this.animations["walkingAnimation"]).play()
+        } else {
+            this.remy.mixer.clipAction(this.animations["standingAnimation"]).play()
+            this.remy.mixer.clipAction(this.animations["walkingAnimation"]).stop()
+        }
+
         // Move forward
         if(this.controls.moveForward){
             this.sign = 1
-            this.remy.position.z += Math.cos(this.remy.rotation.y)
-            this.remy.position.x += Math.sin(this.remy.rotation.y)
+            this.remy.position.z += Math.cos(this.remy.rotation.y) * this.REMY_SPEED
+            this.remy.position.x += Math.sin(this.remy.rotation.y) * this.REMY_SPEED
         } 
 
-        // Move forward
+        // Move backward
         if(this.controls.moveBackward){
             this.sign = -1
-            this.remy.position.z -= Math.cos(this.remy.rotation.y)
-            this.remy.position.x -= Math.sin(this.remy.rotation.y)
+            this.remy.position.z -= Math.cos(this.remy.rotation.y) * this.REMY_SPEED
+            this.remy.position.x -= Math.sin(this.remy.rotation.y) * this.REMY_SPEED
         } 
         
         // Move left
@@ -187,10 +197,6 @@ class App {
         if(this.controls.moveRight){
             this.remy.rotation.y -= 0.05
         } 
-
-        // Play deefault animation
-        console.log("play default animation")
-
 
         // Update all mixers animations
         for ( var i = 0; i < this.mixers.length; i ++ ) {
