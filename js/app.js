@@ -13,10 +13,10 @@ class App {
 
         // Camera
         this.camera = new THREE.PerspectiveCamera(
-            75,
+            45,
             window.innerWidth / window.innerHeight,
-            0.1,
-            1500
+            1,
+            4000
         )
 
         // Controls
@@ -28,13 +28,20 @@ class App {
         this.models = []
         this.mixers = []
         this.animations = []
+        this.sign = 1
+        this.velocity = {
+            x: 0.5,
+            y: 0.02,
+            z: 0.5
+        }
         
         // Meshes settings
         this.controls = {
             moveForward: false,
             moveBackward: false,
             moveLeft: false,
-            moveRight: false
+            moveRight: false,
+            default: true
         }
 
         // Launch scene
@@ -45,7 +52,7 @@ class App {
         // Settings
         this.renderer.setPixelRatio(window.devicePixelRatio)
         this.renderer.setSize(window.innerWidth, window.innerHeight)
-        this.camera.position.set(0, 0, 1000)
+        this.camera.position.set(0, 0, 200)
         this.scene.background = new THREE.Color(0x0000ff)
 
         // Lights
@@ -55,6 +62,10 @@ class App {
 
         let ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
         this.scene.add(ambientLight)
+
+        // Helpers
+        let axesHelper = new THREE.AxesHelper(50)
+        this.scene.add(axesHelper)
 
         // Load all Meshes
         Promise.all([
@@ -90,15 +101,18 @@ class App {
     }
 
     launchScene(){
+        // ground
+        var mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 2000, 2000 ), new THREE.MeshPhongMaterial( { color: 0x999999, depthWrite: false } ) );
+        mesh.rotation.x = - Math.PI / 2;
+        mesh.receiveShadow = true;
+        this.scene.add( mesh );
+                
         // Add all meshes to scene
         for(let id in this.models){
             let model = this.models[id]
 
             if(id === "remy"){
-                // for(let key in this.animations){
-                //     let animation = this.animations[key]
-                //     model.mixer.clipAction(animation)
-                // }
+                model.scale.set(0.1, 0.1, 0.1)
                 this.remy = model
             }
 
@@ -113,12 +127,21 @@ class App {
         this.update()
     }
 
-    onKeyDown(e){
-        e.stopPropagation()
+    onKeyDown(event){
+        event.stopPropagation()
 
         switch ( event.keyCode ) {
-            case 38: /*UP*/
-            case 90: /*Z*/ 	this.controls.moveForward = true; break;
+            case 90: /*UP*/
+            case 38: /*Z*/ 	this.controls.moveForward = true; break;
+
+            case 40: /*DOWN*/
+            case 83: /*S*/ 	this.controls.moveBackward = true; break;
+
+            case 37: /*LEFT*/
+            case 81: /*Q*/ 	this.controls.moveLeft = true; break;
+
+            case 39: /*RIGHT*/
+            case 68: /*D*/ 	this.controls.moveRight = true; break;
         }
     }
 
@@ -126,23 +149,52 @@ class App {
         e.stopPropagation()
 
         switch ( event.keyCode ) {
-            case 38: /*UP*/
-            case 90: /*Z*/ 	this.controls.moveForward = false; break;
+            case 90: /*UP*/
+            case 38: /*Z*/ 	this.controls.moveForward = false; break;
+
+            case 40: /*DOWN*/
+            case 83: /*Z*/ 	this.controls.moveBackward = false; break;
+
+            case 37: /*LEFT*/
+            case 81: /*Q*/ 	this.controls.moveLeft = false; break;
+
+            case 39: /*RIGHT*/
+            case 68: /*D*/ 	this.controls.moveRight = false; break;
         }
     }
 
     update() {
+        // Move forward
         if(this.controls.moveForward){
-            this.remy.mixer.clipAction(this.animations["walkingAnimation"]).play()
-            this.remy.mixer.clipAction(this.animations["standingAnimation"]).stop()
-        } else {
-            this.remy.mixer.clipAction(this.animations["standingAnimation"]).play()
-            this.remy.mixer.clipAction(this.animations["walkingAnimation"]).stop()
-        }
+            this.sign = 1
+            this.remy.position.z += Math.cos(this.remy.rotation.y)
+            this.remy.position.x += Math.sin(this.remy.rotation.y)
+        } 
+
+        // Move forward
+        if(this.controls.moveBackward){
+            this.sign = -1
+            this.remy.position.z -= Math.cos(this.remy.rotation.y)
+            this.remy.position.x -= Math.sin(this.remy.rotation.y)
+        } 
+        
+        // Move left
+        if(this.controls.moveLeft){
+            this.remy.rotation.y += 0.05
+        } 
+
+        // Move right
+        if(this.controls.moveRight){
+            this.remy.rotation.y -= 0.05
+        } 
+
+        // Play deefault animation
+        console.log("play default animation")
+
 
         // Update all mixers animations
         for ( var i = 0; i < this.mixers.length; i ++ ) {
-            this.mixers[ i ].update( this.clock.getDelta() )
+            this.mixers[ i ].update( this.clock.getDelta() * this.sign)
         }
 
         this.renderer.render(this.scene, this.camera)
