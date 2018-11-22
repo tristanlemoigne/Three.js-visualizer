@@ -7,11 +7,16 @@ class App {
         this.POINT_TEXTURE = new THREE.TextureLoader().load("assets/disc.png")
         this.POINTS_SCALE = 1.1
         this.SPHERE_RAY = 10
-        this.SPHERE_RINGS = 32
+        this.SPHERE_RINGS = 62
         this.SPHERE_SEGMENTS = 64
-        this.COLOR_ARR = [0x0000ff, 0xffffff, 0xff0000]
+        // this.COLOR_ARR = [0x0000ff, 0xffffff, 0xff0000]
+        this.COLOR_ARR = [0x00d2ff, 0xffffff, 0x00d2ff]
+
+        this.NOISE_AMPLITUDE = 20
+        this.NOISE_SPEED = .07
 
         // Remy settings
+        this.remyTime = 0
         this.REMY_SPEED = 0.55
         this.REMY_SCALE = 0.1
 
@@ -105,14 +110,14 @@ class App {
 
         // Disco sphere
         this.discoSphere = new DiscoSphere(this.SPHERE_RAY, this.SPHERE_RINGS, this.SPHERE_SEGMENTS, this.POINT_SIZE, this.POINT_TEXTURE, this.COLOR_ARR)
-        this.discoSphere.scale.set(this.DISCOSPHERE_SCALE, this.DISCOSPHERE_SCALE, 2 * this.DISCOSPHERE_SCALE)
-        this.scene.add(this.discoSphere)
+        this.discoSphere.mesh.scale.set(this.DISCOSPHERE_SCALE, this.DISCOSPHERE_SCALE, 2 * this.DISCOSPHERE_SCALE)
+        this.scene.add(this.discoSphere.mesh)
 
         // Remy
-        this.remy = new Remy(this.models.remy, this.REMY_SPEED, this.mixers, this.animations)
-        this.remy.addListeners()
-        this.models.remy.scale.set(this.REMY_SCALE, this.REMY_SCALE, this.REMY_SCALE)
-        // this.scene.add(this.models.remy)
+        // this.remy = new Remy(this.models.remy, this.REMY_SPEED, this.mixers, this.animations)
+        // this.remy.addListeners()
+        // this.remy.mesh.scale.set(this.REMY_SCALE, this.REMY_SCALE, this.REMY_SCALE)
+        // this.scene.add(this.remy.mesh)
 
         // Raf loop()
         this.update()
@@ -120,6 +125,9 @@ class App {
 
     update() {
         // this.remy.update()
+        this.remyTime += this.NOISE_SPEED
+        this.discoSphere.update(this.NOISE_AMPLITUDE, this.remyTime)
+
         this.renderer.render(this.scene, this.camera)
         requestAnimationFrame(this.update.bind(this))
     }

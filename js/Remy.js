@@ -1,6 +1,6 @@
 class Remy{
     constructor(model, speed, mixers, animations){
-        this.remy = model
+        this.mesh = model
         this.speed = speed
         this.mixers = mixers
         this.animations = animations
@@ -62,35 +62,35 @@ class Remy{
     update(){
         // Playing correct animations
         if(this.controls.moveForward || this.controls.moveBackward || this.controls.moveLeft ||this.controls.moveRight){
-            this.remy.mixer.clipAction(this.animations["standingAnimation"]).stop()
-            this.remy.mixer.clipAction(this.animations["walkingAnimation"]).play()
+            this.mesh.mixer.clipAction(this.animations["standingAnimation"]).stop()
+            this.mesh.mixer.clipAction(this.animations["walkingAnimation"]).play()
         } else {
-            this.remy.mixer.clipAction(this.animations["standingAnimation"]).play()
-            this.remy.mixer.clipAction(this.animations["walkingAnimation"]).stop()
+            this.mesh.mixer.clipAction(this.animations["standingAnimation"]).play()
+            this.mesh.mixer.clipAction(this.animations["walkingAnimation"]).stop()
         }
 
         // Move forward
         if(this.controls.moveForward){
             this.sign = 1
-            this.remy.position.z += Math.cos(this.remy.rotation.y) * this.speed
-            this.remy.position.x += Math.sin(this.remy.rotation.y) * this.speed
+            this.mesh.position.z += Math.cos(this.mesh.rotation.y) * this.speed
+            this.mesh.position.x += Math.sin(this.mesh.rotation.y) * this.speed
         } 
 
         // Move backward
         if(this.controls.moveBackward){
             this.sign = -1
-            this.remy.position.z -= Math.cos(this.remy.rotation.y) * this.speed
-            this.remy.position.x -= Math.sin(this.remy.rotation.y) * this.speed
+            this.mesh.position.z -= Math.cos(this.mesh.rotation.y) * this.speed
+            this.mesh.position.x -= Math.sin(this.mesh.rotation.y) * this.speed
         } 
         
         // Move left
         if(this.controls.moveLeft){
-            this.remy.rotation.y += 0.05
+            this.mesh.rotation.y += 0.05
         } 
 
         // Move right
         if(this.controls.moveRight){
-            this.remy.rotation.y -= 0.05
+            this.mesh.rotation.y -= 0.05
         } 
 
          // Update all mixers animations

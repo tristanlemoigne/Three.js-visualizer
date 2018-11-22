@@ -112,11 +112,13 @@ class App {
         this.POINTS_SCALE = 1.1
 
         this.SPHERE_RAY = 10
-        this.SPHERE_RINGS = 32
+        this.SPHERE_RINGS = 62
         this.SPHERE_SEGMENTS = 64
-        this.COLOR_ARR = [0x0000ff, 0xffffff, 0xff0000]
+        // this.COLOR_ARR = [0x0000ff, 0xffffff, 0xff0000]
+        this.COLOR_ARR = [0x00d2ff, 0xffffff, 0x00d2ff]
 
-        this.NOISE_AMPLITUDE = .01
+        this.NOISE_AMPLITUDE = 20
+        this.NOISE_SPEED = .07
 
         // Launch scene
         this.music = new Sound("assets/sound.mp3", 120, 0, this.init.bind(this), true)
@@ -183,7 +185,7 @@ class App {
 
 
     update() {
-        this.time += 0.1 
+        this.time += this.NOISE_SPEED 
         // let frequencyArr = this.music.getSpectrum()
         // let whiteLength = this.SPHERE_SEGMENTS * Math.round(this.SPHERE_RINGS / this.COLOR_ARR.length)
 
@@ -198,16 +200,15 @@ class App {
             // White (apply noise)
             else{
                 let randomPosition = {
-                    x: (point.initialPosition.x * this.time) * this.NOISE_AMPLITUDE ,
-                    y: (point.initialPosition.y * this.time) * this.NOISE_AMPLITUDE ,
-                    z: (point.initialPosition.z * this.time) * this.NOISE_AMPLITUDE 
+                    x: (point.position.x + this.time) / this.NOISE_AMPLITUDE,
+                    y: (point.position.y + this.time) / this.NOISE_AMPLITUDE,
+                    y: (point.position.z + this.time) / this.NOISE_AMPLITUDE
                 }
         
-                this.noise = this.simplex.noise3D(randomPosition.x, randomPosition.y, randomPosition.z) 
-
+                this.noise = this.simplex.noise2D(randomPosition.x, randomPosition.y, randomPosition.z)
                 point.position.x = point.initialPosition.x + this.noise 
-                point.position.y = point.initialPosition.y + this.noise
-                point.position.z = point.initialPosition.z + this.noise
+                point.position.y = point.initialPosition.y + this.noise 
+                point.position.z = point.initialPosition.z  + this.noise/2
             }
         })
 
