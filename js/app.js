@@ -1,89 +1,45 @@
 "use strict"
-
 class App {
     constructor() {
-        // Renderer
-        this.renderer = new THREE.WebGLRenderer({
-            canvas: document.querySelector("canvas"),
-            antialias: true
-        })
+        // Disco sphere settings
+        this.DISCOSPHERE_SCALE = 1
+        this.POINT_SIZE = 2
+        this.POINT_TEXTURE = new THREE.TextureLoader().load("assets/disc.png")
+        this.POINTS_SCALE = 1.1
+        this.SPHERE_RAY = 10
+        this.SPHERE_RINGS = 32
+        this.SPHERE_SEGMENTS = 64
+        this.COLOR_ARR = [0x0000ff, 0xffffff, 0xff0000]
 
-        // Scene
-        this.scene = new THREE.Scene()
+        // Remy settings
+        this.REMY_SPEED = 0.55
+        this.REMY_SCALE = 0.1
 
-        // Camera
-        this.camera = new THREE.PerspectiveCamera(
-            45,
-            window.innerWidth / window.innerHeight,
-            1,
-            4000
-        )
-
-        // Controls
-        this.orbitControl = new THREE.OrbitControls(this.camera)
-
-        // Scene settings
-        this.fbxLoader = new THREE.FBXLoader()
-        this.clock = new THREE.Clock()
+        // Models settings
         this.models = []
         this.mixers = []
         this.animations = []
-        this.sign = 1
-        this.velocity = {
-            x: 0.5,
-            y: 0.02,
-            z: 0.5
-        }
-        
-        // Meshes settings
-        this.controls = {
-            moveForward: false,
-            moveBackward: false,
-            moveLeft: false,
-            moveRight: false,
-        }
 
-        this.REMY_SPEED = 0.5
-
-        // Launch scene
-        this.init()
+        // Load all elements
+        this.loadAll()
     }
 
-    init() {
-        // Settings
-        this.renderer.setPixelRatio(window.devicePixelRatio)
-        this.renderer.setSize(window.innerWidth, window.innerHeight)
-        this.camera.position.set(0, 0, 200)
-        this.scene.background = new THREE.Color(0x0000ff)
-
-        // Lights
-        let pointLight = new THREE.PointLight(0xffffff, 1, 200)
-        pointLight.position.set(0, 50, 50)
-        this.scene.add(pointLight)
-
-        let ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
-        this.scene.add(ambientLight)
-
-        // Helpers
-        let axesHelper = new THREE.AxesHelper(50)
-        this.scene.add(axesHelper)
-
-        // Load all Meshes
+    loadAll(){
         Promise.all([
             this.loadModel("assets/remy.fbx", "remy"),
             this.loadAnimation("assets/standing_animation.fbx", "standingAnimation"),
             this.loadAnimation("assets/walking_animation.fbx", "walkingAnimation"),
             this.loadAnimation("assets/dancing_animation.fbx", "dancingAnimation"),
-            this.loadAnimation("assets/yelling_animation.fbx", "yellingAnimation"),
+            this.loadAnimation("assets/yelling_animation.fbx", "yellingAnimation")
         ]).then(() => {
             // Once all loaded, launch the scene
-            this.launchScene()
+            this.initScene()
         })
     }
 
     loadModel(path, id) {
         return new Promise((resolve, reject) => {
-            this.fbxLoader.load(path, (model) => {
+           new THREE.FBXLoader().load(path, (model) => {
                 model.mixer = new THREE.AnimationMixer(model)
                 this.models[id] = model
                 this.mixers.push(model.mixer)
@@ -94,115 +50,76 @@ class App {
 
     loadAnimation(path, id) {
         return new Promise((resolve, reject) => {
-            this.fbxLoader.load(path, (mesh) => {
+            new THREE.FBXLoader().load(path, (mesh) => {
                 this.animations[id] = mesh.animations[0]
                 resolve()
             })
         })
     }
 
-    launchScene(){
-        // ground
-        var mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 2000, 2000 ), new THREE.MeshPhongMaterial( { color: 0x999999, depthWrite: false } ) );
-        mesh.rotation.x = - Math.PI / 2;
-        mesh.receiveShadow = true;
-        this.scene.add( mesh );
-                
-        // Add all meshes to scene
-        for(let id in this.models){
-            let model = this.models[id]
+    initScene() {
+        // Renderer
+        this.renderer = new THREE.WebGLRenderer({
+            canvas: document.querySelector("canvas"),
+            antialias: true
+        })
+        this.renderer.setPixelRatio(window.devicePixelRatio)
+        this.renderer.setSize(window.innerWidth, window.innerHeight)
 
-            if(id === "remy"){
-                model.scale.set(0.1, 0.1, 0.1)
-                this.remy = model
-            }
+        // Scene
+        this.scene = new THREE.Scene()
+        this.scene.background = new THREE.Color(0x0000ff)
 
-            this.scene.add(model)
-        }
+        // Camera
+        this.camera = new THREE.PerspectiveCamera(
+            45,
+            window.innerWidth / window.innerHeight,
+            1,
+            4000
+        )
+        this.camera.position.set(0, 50, 200)
+        this.camera.lookAt(this.scene.position)
 
-        // Add listeners
-        window.addEventListener('keydown', this.onKeyDown.bind(this), false)
-        window.addEventListener('keyup', this.onKeyUp.bind(this), false)
+        // Controls
+        this.orbitControl = new THREE.OrbitControls(this.camera)
 
-        // Update raf
+        // Lights
+        let pointLight = new THREE.PointLight(0xffffff, 1, 100)
+        pointLight.position.set(0, 50, 0)
+        this.scene.add(pointLight)
+
+        let ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
+        this.scene.add(ambientLight)
+
+        // Helpers
+        let axesHelper = new THREE.AxesHelper(10)
+        this.scene.add(axesHelper)
+
+        // Plane
+        let planeGeometry = new THREE.PlaneBufferGeometry(1000, 1000)
+        let planeMaterial = new THREE.MeshPhongMaterial({color: 0x999999, depthWrite: false, side: THREE.DoubleSide })
+        this.plane = new THREE.Mesh(planeGeometry, planeMaterial)
+        // this.plane.receiveShadow = true
+        this.plane.rotation.x = - Math.PI / 2
+        this.scene.add(this.plane)
+
+        // Disco sphere
+        this.discoSphere = new DiscoSphere(this.SPHERE_RAY, this.SPHERE_RINGS, this.SPHERE_SEGMENTS, this.POINT_SIZE, this.POINT_TEXTURE, this.COLOR_ARR)
+        this.discoSphere.scale.set(this.DISCOSPHERE_SCALE, this.DISCOSPHERE_SCALE, 2 * this.DISCOSPHERE_SCALE)
+        this.scene.add(this.discoSphere)
+
+        // Remy
+        this.remy = new Remy(this.models.remy, this.REMY_SPEED, this.mixers, this.animations)
+        this.remy.addListeners()
+        this.models.remy.scale.set(this.REMY_SCALE, this.REMY_SCALE, this.REMY_SCALE)
+        // this.scene.add(this.models.remy)
+
+        // Raf loop()
         this.update()
     }
 
-    onKeyDown(event){
-        event.stopPropagation()
-
-        switch ( event.keyCode ) {
-            case 90: /*UP*/
-            case 38: /*Z*/ 	this.controls.moveForward = true; break;
-
-            case 40: /*DOWN*/
-            case 83: /*S*/ 	this.controls.moveBackward = true; break;
-
-            case 37: /*LEFT*/
-            case 81: /*Q*/ 	this.controls.moveLeft = true; break;
-
-            case 39: /*RIGHT*/
-            case 68: /*D*/ 	this.controls.moveRight = true; break;
-        }
-    }
-
-    onKeyUp(e){
-        e.stopPropagation()
-
-        switch ( event.keyCode ) {
-            case 90: /*UP*/
-            case 38: /*Z*/ 	this.controls.moveForward = false; break;
-
-            case 40: /*DOWN*/
-            case 83: /*Z*/ 	this.controls.moveBackward = false; break;
-
-            case 37: /*LEFT*/
-            case 81: /*Q*/ 	this.controls.moveLeft = false; break;
-
-            case 39: /*RIGHT*/
-            case 68: /*D*/ 	this.controls.moveRight = false; break;
-        }
-    }
-
     update() {
-        // Playing correct animations
-        if(this.controls.moveForward || this.controls.moveBackward || this.controls.moveLeft ||this.controls.moveRight){
-            this.remy.mixer.clipAction(this.animations["standingAnimation"]).stop()
-            this.remy.mixer.clipAction(this.animations["walkingAnimation"]).play()
-        } else {
-            this.remy.mixer.clipAction(this.animations["standingAnimation"]).play()
-            this.remy.mixer.clipAction(this.animations["walkingAnimation"]).stop()
-        }
-
-        // Move forward
-        if(this.controls.moveForward){
-            this.sign = 1
-            this.remy.position.z += Math.cos(this.remy.rotation.y) * this.REMY_SPEED
-            this.remy.position.x += Math.sin(this.remy.rotation.y) * this.REMY_SPEED
-        } 
-
-        // Move backward
-        if(this.controls.moveBackward){
-            this.sign = -1
-            this.remy.position.z -= Math.cos(this.remy.rotation.y) * this.REMY_SPEED
-            this.remy.position.x -= Math.sin(this.remy.rotation.y) * this.REMY_SPEED
-        } 
-        
-        // Move left
-        if(this.controls.moveLeft){
-            this.remy.rotation.y += 0.05
-        } 
-
-        // Move right
-        if(this.controls.moveRight){
-            this.remy.rotation.y -= 0.05
-        } 
-
-        // Update all mixers animations
-        for ( var i = 0; i < this.mixers.length; i ++ ) {
-            this.mixers[ i ].update( this.clock.getDelta() * this.sign)
-        }
-
+        // this.remy.update()
         this.renderer.render(this.scene, this.camera)
         requestAnimationFrame(this.update.bind(this))
     }
