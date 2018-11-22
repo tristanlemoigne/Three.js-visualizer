@@ -1,15 +1,15 @@
 // Based largely on https://github.com/jsantell/dancer.js/
 
-export default class Sound {
+class TheSound {
 
     /**
-     * src        : path to mp3
+     * buffer     : sound buffer
      * bpm        : beat per minute
      * offsetTime : remove blank sound at start for beat calculation (in seconds)
      * callback   : ready callback
      * debug      : enable debug display
      */
-    constructor(src, bpm, offsetTime, callback, debug = false) {
+    constructor(buffer, bpm, offsetTime, debug = false) {
 
         // create context
         this.ctx;
@@ -22,6 +22,7 @@ export default class Sound {
         }
 
         // values
+        this._buffer = buffer
         this._bpm = bpm;
         this._beatDuration = 60 / this._bpm;
         this._offsetTime = offsetTime;
@@ -54,41 +55,9 @@ export default class Sound {
         // create debug
         if (debug) this.debug = new Debug(this);
 
-        // load
-        this._load(src, callback);
-
         // update
         window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
         window.cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame;
-    }
-
-    // load MP3
-
-    _load(src, callback) {
-
-        if (src) {
-
-            this._isLoaded = false;
-            this._progress = 0;
-
-            // Load asynchronously
-    		let request = new XMLHttpRequest();
-    		request.open("GET", src, true);
-    		request.responseType = "arraybuffer";
-            request.onprogress = (e) => {
-                this._progress = e.loaded / e.total;
-            };
-    		request.onload = () => {
-    			this.ctx.decodeAudioData(request.response, (buffer) => {
-                    this._buffer = buffer;
-                    this._isLoaded = true;
-                    if (callback) callback();
-    			}, function(e) {
-    				console.log(e);
-    			});
-    		};
-    		request.send();
-        }
     }
 
     get progress() {

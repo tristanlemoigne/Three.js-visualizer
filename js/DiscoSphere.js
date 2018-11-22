@@ -1,3 +1,23 @@
+class Point {
+    constructor(size, texture, color) {
+        this.size = size
+        this.texture = texture
+        this.color = color
+
+        return this.draw()
+    }
+
+    draw() {
+        let geometry = new THREE.Geometry()
+        geometry.vertices.push(new THREE.Vector3())
+        let material = new THREE.PointsMaterial( {color: this.color, transparent: true, size: this.size, map: this.texture} )
+        material.needsUpdate = true
+
+        let point = new THREE.Points( geometry, material )
+        return point
+    }
+}
+
 class DiscoSphere{
     constructor(rayon, rings, segments, pointSize, pointTexture, colorArr){
         this.rayon = rayon
@@ -47,6 +67,7 @@ class DiscoSphere{
             }
         }
 
+        // this.mesh = sphere
         return sphere
     }
 
@@ -54,15 +75,16 @@ class DiscoSphere{
         this.noiseAmplitude = noiseAmplitude
         this.time = time
 
-        this.mesh.children.forEach(point => {
-            // Blue or red
+        // Remove Listener from children
+        this.mesh.children.slice(0, -1).forEach(point => {
+            // // Blue or red
             if(point.position.z > this.rayon/2 || point.position.z < -this.rayon/2){
-                // point.position.x += (point.initialPosition.x - point.position.x) / 5
-                // point.position.y += (point.initialPosition.y - point.position.y) / 5
-                // point.position.z += (point.initialPosition.z - point.position.z) / 5
+                point.position.x += (point.initialPosition.x - point.position.x) / 5
+                point.position.y += (point.initialPosition.y - point.position.y) / 5
+                point.position.z += (point.initialPosition.z - point.position.z) / 5
             }
 
-            // White (apply noise)
+            // // White (apply noise)
             else{
                 let randomPosition = {
                     x: (point.position.x + this.time) / this.noiseAmplitude,
@@ -76,25 +98,5 @@ class DiscoSphere{
                 point.position.z = point.initialPosition.z  + this.noise/2
             }
         })
-    }
-}
-
-class Point {
-    constructor(size, texture, color) {
-        this.size = size
-        this.texture = texture
-        this.color = color
-
-        return this.draw()
-    }
-
-    draw() {
-        let geometry = new THREE.Geometry()
-        geometry.vertices.push(new THREE.Vector3())
-        let material = new THREE.PointsMaterial( {color: this.color, transparent: true, size: this.size, map: this.texture} )
-        material.needsUpdate = true
-
-        let point = new THREE.Points( geometry, material )
-        return point
     }
 }
