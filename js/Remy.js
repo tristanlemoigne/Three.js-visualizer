@@ -94,8 +94,6 @@ class Remy{
         } 
 
          // Update all mixers animations
-         for ( var i = 0; i < this.mixers.length; i ++ ) {
-            this.mixers[ i ].update( this.clock.getDelta() * this.sign)
-        }
+        this.mixers[0].update( this.clock.getDelta() * this.sign)
     }
 }

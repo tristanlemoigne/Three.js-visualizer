@@ -31,6 +31,10 @@ class DiscoSphere{
         this.mesh = this.draw()
     }
 
+    get size(){
+        return new THREE.Box3().setFromObject(this.mesh).getSize(new THREE.Vector3())
+    }
+
     draw(){
         let sphere = new THREE.Group()
 
@@ -40,16 +44,16 @@ class DiscoSphere{
             // Blue
             if(latitude < Math.PI/6 && latitude > -Math.PI/6){
                 color = this.colorArr[1]
-                this.pointSize = 0.7
+                this.pointSize = 1.5
             }
             // White
             else if(latitude < 0){
-                this.pointSize = 2
+                this.pointSize = 3
                 color = this.colorArr[0]
             } 
             // Red
             else {
-                this.pointSize = 2
+                this.pointSize = 3
                 color = this.colorArr[2]
             }
 
