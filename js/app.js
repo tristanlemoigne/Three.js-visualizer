@@ -19,8 +19,8 @@ class App {
         this.REMY_SCALE = 0.1
 
         // Volume settings
-        this.VOLUME_RAY = 5
-        this.VOLUME_REDUCTION = 1
+        this.VOLUME_RAY = 2
+        this.VOLUME_REDUCTION = 1.5
 
         // Loaders settings
         this.modelsArr = []
@@ -43,7 +43,7 @@ class App {
     loadAll(){
         Promise.all([
             this.loadModel("assets/models/remy.fbx", "remy"),
-            this.loadModel("assets/models/speaker.fbx", "speaker"),
+            this.loadModel("assets/models/speaker2.fbx", "speaker"),
             this.loadTexture("assets/textures/disc.png", "particle"),
             this.loadAnimation("assets/animations/standing_animation.fbx", "standingAnimation"),
             this.loadAnimation("assets/animations/walking_animation.fbx", "walkingAnimation"),
@@ -139,10 +139,14 @@ class App {
         this.orbitControl = new THREE.OrbitControls(this.cameraTest)
 
         // Lights
-        let pointLight = new THREE.PointLight(0xffffff, 1, 100)
-        pointLight.position.set(0, 50, 0)
+        let pointLight = new THREE.PointLight(0xffffff, 1, 200)
+        pointLight.position.set(0, 20, 0)
         pointLight.castShadow = true
         this.scene.add(pointLight)
+
+        var sphereSize = 1;
+        var pointLightHelper = new THREE.PointLightHelper( pointLight, sphereSize );
+        this.scene.add( pointLightHelper );
 
         let ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
         this.scene.add(ambientLight)
@@ -163,20 +167,25 @@ class App {
         this.discoSphere = new DiscoSphere(this.SPHERE_RAY, this.SPHERE_RINGS, this.SPHERE_SEGMENTS, this.POINT_SIZE, this.texturesArr.particle, this.COLOR_ARR)
         this.discoSphere.mesh.scale.set(this.DISCOSPHERE_SCALE, this.DISCOSPHERE_SCALE, 2 * this.DISCOSPHERE_SCALE)
         this.discoSphere.mesh.position.y += this.discoSphere.size.y / 2
-        this.discoSphere.mesh.position.z = 100
+        this.discoSphere.mesh.position.z = 200
+        this.discoSphere.mesh.position.x = -150
+        this.discoSphere.mesh.rotation.y = Math.PI/4
         this.scene.add(this.discoSphere.mesh)
 
         // Speaker
         this.speaker = new Speaker(this.modelsArr.speaker)
         this.speaker.mesh.scale.set(this.REMY_SCALE, this.REMY_SCALE, this.REMY_SCALE)
         this.speaker.mesh.position.y += this.speaker.size.y / 2
+        this.speaker.mesh.position.z = 200
+        this.speaker.mesh.position.x = 150
+        this.speaker.mesh.rotation.y = -Math.PI/4
         this.scene.add(this.speaker.mesh)
 
         // Remy
         this.remy = new Remy(this.modelsArr.remy, this.REMY_SPEED, this.mixersArr, this.animationsArr)
         this.remy.addListeners()
         this.remy.mesh.scale.set(this.REMY_SCALE, this.REMY_SCALE, this.REMY_SCALE)
-        // this.remy.mesh.add(this.camera)
+        this.remy.mesh.add(this.camera)
         this.remy.mesh.add(this.listener)
         this.scene.add(this.remy.mesh)
 
@@ -185,6 +194,9 @@ class App {
             console.log(this.listener)
             // Add bass music to disco sphere
             this.discoSphere.mesh.add(this.positionnalMusics.bassMusic)
+            this.speaker.mesh.add(this.positionnalMusics.mediumMusic)
+            console.log(this.positionnalMusics.bassMusic.getDistanceModel())
+
 
             // Bass music Analyser
             let bassMusicAnalyser= new TheSound(this.buffersArr.bassMusic, 0, 0, false)
@@ -223,7 +235,7 @@ class App {
             positionnalMusic.play()
 
             if(key === "bassMusic"){
-                positionnalMusic.setVolume(0.3)
+                positionnalMusic.setVolume(0.2)
             }
 
             this.positionnalMusics[key] = positionnalMusic
@@ -248,6 +260,9 @@ class App {
     update() {
         // Update Remy
         this.remy.update()
+
+        console.log(this.positionnalMusics.bassMusic.getDistanceModel())
+
         
         // Update disco
         this.discoTime += this.NOISE_SPEED
@@ -257,7 +272,7 @@ class App {
         this.mediumFrequencyDatas = this.mediumMusicAnalyser.getSpectrum()
         this.speaker.update(this.mediumFrequencyDatas)
 
-        this.renderer.render(this.scene, this.cameraTest)
+        this.renderer.render(this.scene, this.camera)
         requestAnimationFrame(this.update.bind(this))
     }
 }
