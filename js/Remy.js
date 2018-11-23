@@ -13,6 +13,7 @@ class Remy{
             moveRight: false,
         }
 
+        this.isMoving = false
         // Animations settings
         this.clock = new THREE.Clock()
         this.sign = 1
@@ -25,6 +26,7 @@ class Remy{
 
     onKeyDown(event){
         event.stopPropagation()
+        // this.isMoving = true
 
         switch ( event.keyCode ) {
             case 90: /*UP*/
@@ -43,6 +45,7 @@ class Remy{
 
     onKeyUp(e){
         e.stopPropagation()
+        // this.isMoving = false
 
         switch ( event.keyCode ) {
             case 90: /*UP*/
@@ -59,14 +62,33 @@ class Remy{
         }
     }
 
-    update(){
+    update(discoPosition, speakerPosition, discoAverage, speakerAverage){
         // Playing correct animations
+        let distanceSpeakerRemy = Math.sqrt(Math.pow(speakerPosition.x - this.mesh.position.x, 2) + Math.pow(speakerPosition.y - this.mesh.position.y, 2) + Math.pow(speakerPosition.z - this.mesh.position.z, 2))
+        let distanceDiscoRemy = Math.sqrt(Math.pow(discoPosition.x - this.mesh.position.x, 2) + Math.pow(discoPosition.y - this.mesh.position.y, 2) + Math.pow(discoPosition.z - this.mesh.position.z, 2))
+
         if(this.controls.moveForward || this.controls.moveBackward || this.controls.moveLeft ||this.controls.moveRight){
-            this.mesh.mixer.clipAction(this.animations["standingAnimation"]).stop()
-            this.mesh.mixer.clipAction(this.animations["walkingAnimation"]).play()
+            this.isMoving = true
         } else {
-            this.mesh.mixer.clipAction(this.animations["standingAnimation"]).play()
-            this.mesh.mixer.clipAction(this.animations["walkingAnimation"]).stop()
+            this.isMoving = false
+        }
+
+        if(this.isMoving){
+            // Default
+            this.mesh.mixer.clipAction(this.animations["walkingAnimation"]).play()
+            this.mesh.mixer.clipAction(this.animations["yellingAnimation"]).stop()
+            this.mesh.mixer.clipAction(this.animations["dancingAnimation"]).stop()
+        } else {
+            // Dance
+            if((distanceDiscoRemy < 70 && discoAverage > 60) || distanceSpeakerRemy < 70 && speakerAverage > 70){
+                this.mesh.mixer.clipAction(this.animations["dancingAnimation"]).play()
+                this.mesh.mixer.clipAction(this.animations["yellingAnimation"]).stop()
+                this.mesh.mixer.clipAction(this.animations["walkingAnimation"]).stop()
+            } else {
+                this.mesh.mixer.clipAction(this.animations["yellingAnimation"]).play()
+                this.mesh.mixer.clipAction(this.animations["walkingAnimation"]).stop()
+                this.mesh.mixer.clipAction(this.animations["dancingAnimation"]).stop()
+            }
         }
 
         // Move forward

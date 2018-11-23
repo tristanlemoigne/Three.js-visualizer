@@ -44,16 +44,19 @@ class DiscoSphere{
             // Blue
             if(latitude < Math.PI/6 && latitude > -Math.PI/6){
                 color = this.colorArr[1]
-                this.pointSize = 1.5
+                // this.pointSize = 1.5
+                this.pointSize = 5
             }
             // White
             else if(latitude < 0){
-                this.pointSize = 3
+                // this.pointSize = 3
+                this.pointSize = 10
                 color = this.colorArr[0]
             } 
             // Red
             else {
-                this.pointSize = 3
+                // this.pointSize = 3
+                this.pointSize = 10
                 color = this.colorArr[2]
             }
 
@@ -75,9 +78,21 @@ class DiscoSphere{
         return sphere
     }
 
-    update(noiseAmplitude, time){
+    update(noiseAmplitude, time, bassFrequencyDatas){
+        // Get frequencys average
         this.noiseAmplitude = noiseAmplitude
         this.time = time
+
+        let bassCumul = 0
+
+        for (let i = 0; i < bassFrequencyDatas.length; i++) {
+            bassCumul += bassFrequencyDatas[i]
+        }
+
+        this.bassMusicAverage = bassCumul / bassFrequencyDatas.length
+
+        // Animation up/down
+        this.mesh.position.y = Math.sin(this.time/2)* 10 + this.size.y
 
         // Remove Listener from children
         this.mesh.children.slice(0, -1).forEach(point => {

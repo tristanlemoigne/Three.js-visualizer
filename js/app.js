@@ -8,11 +8,11 @@ class App {
         this.SPHERE_RAY = 10
         this.SPHERE_RINGS = 62
         this.SPHERE_SEGMENTS = 64
-        this.COLOR_ARR = [0x00d2ff, 0xffffff, 0x00d2ff]
-        this.discoTime = 0
+        this.COLOR_ARR = [0xff0000, 0x00d2ff, 0xff0000]
+        this.time = 0
 
         this.NOISE_AMPLITUDE = 20
-        this.NOISE_SPEED = .07
+        this.TIME_SPEED = .07
 
         // Remy settings
         this.REMY_SPEED = 0.55
@@ -32,6 +32,14 @@ class App {
         // Music settings
         this.positionnalMusics = {}
 
+         // Remy controls
+         this.controls = {
+            moveForward: false,
+            moveBackward: false,
+            moveLeft: false,
+            moveRight: false,
+        }
+
         // Load all elements
         this.loadAll()
     }
@@ -45,6 +53,7 @@ class App {
             this.loadModel("assets/models/remy.fbx", "remy"),
             this.loadModel("assets/models/speaker2.fbx", "speaker"),
             this.loadTexture("assets/textures/disc.png", "particle"),
+            this.loadTexture("assets/textures/ground4.jpg", "parquet"),
             this.loadAnimation("assets/animations/standing_animation.fbx", "standingAnimation"),
             this.loadAnimation("assets/animations/walking_animation.fbx", "walkingAnimation"),
             this.loadAnimation("assets/animations/dancing_animation.fbx", "dancingAnimation"),
@@ -73,6 +82,12 @@ class App {
     loadTexture(path, id) {
         return new Promise((resolve, reject) => {
            new THREE.TextureLoader().load(path, (texture) => {
+               if(id === "parquet"){
+                texture.repeat.set( 10, 10)
+                texture.wrapS = THREE.RepeatWrapping;
+                texture.wrapT = THREE.RepeatWrapping;
+                       
+                }
                 this.texturesArr[id] = texture
                 resolve()
             })
@@ -108,10 +123,11 @@ class App {
 
         // Scene
         this.scene = new THREE.Scene()
-        this.scene.background = new THREE.Color(0x0000ff)
+        // this.scene.background = new THREE.Color(0zx0000ff)
 
         // Audio Listener
         this.listener = new THREE.AudioListener()
+        this.listener.rotation.y = Math.PI
 
         // Camera officielle
         this.camera = new THREE.PerspectiveCamera(
@@ -120,8 +136,8 @@ class App {
             100,
             3000
         )
-        this.camera.position.set(-100, 350, -250)
         this.camera.rotation.y = Math.PI
+        this.camera.position.set(-100, 350, -250)
         
         // Camera test
         this.cameraTest = new THREE.PerspectiveCamera(
@@ -130,7 +146,7 @@ class App {
             1,
             2000
         )
-        this.cameraTest.position.set(0, 500, -200)
+        this.cameraTest.position.set(0, 500, 200)
         
         this.helper = new THREE.CameraHelper( this.camera );
         this.scene.add( this.helper )
@@ -139,9 +155,9 @@ class App {
         this.orbitControl = new THREE.OrbitControls(this.cameraTest)
 
         // Lights
-        let pointLight = new THREE.PointLight(0xffffff, 1, 200)
-        pointLight.position.set(0, 20, 0)
-        pointLight.castShadow = true
+        let pointLight = new THREE.PointLight(0xffffff, 1, 500)
+        pointLight.position.set(0, 100, 0)
+        // pointLight.castShadow = true
         this.scene.add(pointLight)
 
         var sphereSize = 1;
@@ -157,9 +173,9 @@ class App {
 
         // Plane
         let planeGeometry = new THREE.PlaneBufferGeometry(1000, 1000)
-        let planeMaterial = new THREE.MeshPhongMaterial({color: 0x999999, depthWrite: false, side: THREE.DoubleSide })
+        let planeMaterial = new THREE.MeshPhongMaterial({transparent: true, color: 0x999999, depthWrite: false, side: THREE.DoubleSide, map: this.texturesArr.parquet })
         this.plane = new THREE.Mesh(planeGeometry, planeMaterial)
-        this.plane.receiveShadow = true
+        // this.plane.receiveShadow = trues
         this.plane.rotation.x = - Math.PI / 2
         this.scene.add(this.plane)
 
@@ -167,8 +183,8 @@ class App {
         this.discoSphere = new DiscoSphere(this.SPHERE_RAY, this.SPHERE_RINGS, this.SPHERE_SEGMENTS, this.POINT_SIZE, this.texturesArr.particle, this.COLOR_ARR)
         this.discoSphere.mesh.scale.set(this.DISCOSPHERE_SCALE, this.DISCOSPHERE_SCALE, 2 * this.DISCOSPHERE_SCALE)
         this.discoSphere.mesh.position.y += this.discoSphere.size.y / 2
-        this.discoSphere.mesh.position.z = 200
-        this.discoSphere.mesh.position.x = -150
+        this.discoSphere.mesh.position.z = -200
+        this.discoSphere.mesh.position.x = 150
         this.discoSphere.mesh.rotation.y = Math.PI/4
         this.scene.add(this.discoSphere.mesh)
 
@@ -176,27 +192,25 @@ class App {
         this.speaker = new Speaker(this.modelsArr.speaker)
         this.speaker.mesh.scale.set(this.REMY_SCALE, this.REMY_SCALE, this.REMY_SCALE)
         this.speaker.mesh.position.y += this.speaker.size.y / 2
-        this.speaker.mesh.position.z = 200
-        this.speaker.mesh.position.x = 150
-        this.speaker.mesh.rotation.y = -Math.PI/4
+        this.speaker.mesh.position.z = -200
+        this.speaker.mesh.position.x = -150
+        this.speaker.mesh.rotation.y = 3 * Math.PI/4
         this.scene.add(this.speaker.mesh)
 
         // Remy
         this.remy = new Remy(this.modelsArr.remy, this.REMY_SPEED, this.mixersArr, this.animationsArr)
         this.remy.addListeners()
         this.remy.mesh.scale.set(this.REMY_SCALE, this.REMY_SCALE, this.REMY_SCALE)
+        this.remy.mesh.rotation.y = Math.PI
         this.remy.mesh.add(this.camera)
         this.remy.mesh.add(this.listener)
         this.scene.add(this.remy.mesh)
 
         // Musics
         this.launchPositionnalMusics(this.buffersArr, this.listener, () => {
-            console.log(this.listener)
             // Add bass music to disco sphere
             this.discoSphere.mesh.add(this.positionnalMusics.bassMusic)
             this.speaker.mesh.add(this.positionnalMusics.mediumMusic)
-            console.log(this.positionnalMusics.bassMusic.getDistanceModel())
-
 
             // Bass music Analyser
             let bassMusicAnalyser= new TheSound(this.buffersArr.bassMusic, 0, 0, false)
@@ -212,6 +226,11 @@ class App {
                 offKick: this.offKick.bind(this)
             })
             basses.on()
+
+            // Bass music Analyser
+            this.bassMusicAnalyser = new TheSound(this.buffersArr.bassMusic, 0, 0, false)
+            this.bassMusicAnalyser.play()
+            this.bassMusicAnalyser.volume = 0
 
             // Bass music Analyser
             this.mediumMusicAnalyser = new TheSound(this.buffersArr.mediumMusic, 0, 0, false)
@@ -258,21 +277,23 @@ class App {
 
 
     update() {
-        // Update Remy
-        this.remy.update()
-
-        console.log(this.positionnalMusics.bassMusic.getDistanceModel())
-
+        // this.camera.position.x = this.remy.mesh.position.x
+        // this.camera.position.y = this.remy.mesh.position.y
+        // this.camera.position.z = this.remy.mesh.position.z
         
         // Update disco
-        this.discoTime += this.NOISE_SPEED
-        this.discoSphere.update(this.NOISE_AMPLITUDE, this.discoTime)
-        
+        this.time += this.TIME_SPEED
+        this.bassFrequencyDatas = this.bassMusicAnalyser.getSpectrum()
+        this.discoSphere.update(this.NOISE_AMPLITUDE, this.time, this.bassFrequencyDatas)
+
         // Update Speaker
         this.mediumFrequencyDatas = this.mediumMusicAnalyser.getSpectrum()
-        this.speaker.update(this.mediumFrequencyDatas)
+        this.speaker.update(this.time, this.mediumFrequencyDatas)
 
-        this.renderer.render(this.scene, this.camera)
+        // Update Remy
+        this.remy.update(this.discoSphere.mesh.position, this.speaker.mesh.position, this.discoSphere.bassMusicAverage, this.speaker.mediumMusicAverage)
+
+        this.renderer.render(this.scene, this.cameraTest)
         requestAnimationFrame(this.update.bind(this))
     }
 }
