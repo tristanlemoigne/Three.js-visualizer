@@ -134,10 +134,11 @@ class App {
             100,
             window.innerWidth / window.innerHeight,
             100,
-            3000
+            4000
         )
         this.camera.rotation.y = Math.PI
         this.camera.position.set(-100, 350, -250)
+        // this.scene.add(this.camera)
         
         // Camera test
         this.cameraTest = new THREE.PerspectiveCamera(
@@ -149,27 +150,14 @@ class App {
         this.cameraTest.position.set(0, 500, 200)
         
         this.helper = new THREE.CameraHelper( this.camera );
-        this.scene.add( this.helper )
+        // this.scene.add( this.helper )
 
         // Controls
-        this.orbitControl = new THREE.OrbitControls(this.cameraTest)
-
-        // Lights
-        let pointLight = new THREE.PointLight(0xffffff, 1, 500)
-        pointLight.position.set(0, 100, 0)
-        // pointLight.castShadow = true
-        this.scene.add(pointLight)
-
-        var sphereSize = 1;
-        var pointLightHelper = new THREE.PointLightHelper( pointLight, sphereSize );
-        this.scene.add( pointLightHelper );
-
-        let ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
-        this.scene.add(ambientLight)
+        // this.orbitControl = new THREE.OrbitControls(this.cameraTest)
 
         // Helpers
         let axesHelper = new THREE.AxesHelper(10)
-        this.scene.add(axesHelper)
+        // this.scene.add(axesHelper)
 
         // Plane
         let planeGeometry = new THREE.PlaneBufferGeometry(1000, 1000)
@@ -206,6 +194,22 @@ class App {
         this.remy.mesh.add(this.listener)
         this.scene.add(this.remy.mesh)
 
+          // Lights
+          let ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
+          this.scene.add(ambientLight)
+  
+          this.speakerLight = new THREE.PointLight(0xffffff, 1, 500)
+          this.speakerLight.position.set(this.speaker.mesh.position.x, 20, this.speaker.mesh.position.z)
+          this.scene.add(this.speakerLight)
+  
+          this.discoLight = new THREE.PointLight(0xffffff, 1, 500)
+          this.discoLight.position.set(this.discoSphere.mesh.position.x, 20, this.discoSphere.mesh.position.z)
+          this.scene.add(this.discoLight)
+  
+          this.remyLight = new THREE.PointLight(0xffffff, 1, 500)
+          this.remyLight.position.set(0, 50, 10)
+          this.remy.mesh.add(this.remyLight)
+  
         // Musics
         this.launchPositionnalMusics(this.buffersArr, this.listener, () => {
             // Add bass music to disco sphere
@@ -277,10 +281,6 @@ class App {
 
 
     update() {
-        // this.camera.position.x = this.remy.mesh.position.x
-        // this.camera.position.y = this.remy.mesh.position.y
-        // this.camera.position.z = this.remy.mesh.position.z
-        
         // Update disco
         this.time += this.TIME_SPEED
         this.bassFrequencyDatas = this.bassMusicAnalyser.getSpectrum()
@@ -293,7 +293,7 @@ class App {
         // Update Remy
         this.remy.update(this.discoSphere.mesh.position, this.speaker.mesh.position, this.discoSphere.bassMusicAverage, this.speaker.mediumMusicAverage)
 
-        this.renderer.render(this.scene, this.cameraTest)
+        this.renderer.render(this.scene, this.camera)
         requestAnimationFrame(this.update.bind(this))
     }
 }
